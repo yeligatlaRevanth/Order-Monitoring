@@ -1,0 +1,49 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Order WebSocket Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+</head>
+<body>
+<h2>Order WebSocket Tester</h2>
+<button onclick="connect()">Connect</button>
+<button onclick="subscribe()">Subscribe</button>
+<pre id="output"></pre>
+
+<script>
+    let client;
+
+    function log(message) {
+        document.getElementById("output").textContent += message + "\n";
+    }
+
+    function connect() {
+        client = new StompJs.Client({
+            brokerURL: "ws://localhost:8080/ws-orders",
+            reconnectDelay: 0,
+            onConnect: () => log("STOMP connected successfully"),
+            onStompError: frame => log("STOMP error: " + frame.headers.message),
+            onWebSocketError: () => log("WebSocket error"),
+            onWebSocketClose: () => log("WebSocket closed")
+        });
+
+        client.activate();
+        log("Connecting...");
+    }
+
+    function subscribe() {
+        if (!client || !client.connected) {
+            log("Connect first.");
+            return;
+        }
+
+        client.subscribe("/topic/orders", message => {
+            log("Order update: " + message.body);
+        });
+
+        log("Subscribed to /topic/orders");
+    }
+</script>
+</body>
+</html>
